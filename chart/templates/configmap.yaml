@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}-config
+  namespace: {{ .Release.Namespace | default "default" | quote }}
+data:
+  VITE_APP_API_URL: {{ .Values.environment.be_api_url }}
+  VITE_APP_CHECKER_API_URL: {{ .Values.environment.checker_api_url }}

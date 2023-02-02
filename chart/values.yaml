@@ -1,0 +1,7 @@
+name: onboarding-fe
+deployment:
+  image: aulianabil/onboarding-fe
+  tag: latest
+environment:
+  be_api_url: ${BE_API_URL}
+  checker_api_url: ${CHECKER_API_URL}

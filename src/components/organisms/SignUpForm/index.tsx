@@ -43,7 +43,7 @@ const SignUpForm = () => {
                 action.resetForm();
                 navigate("/");
             } catch (err: any) {
-                const msg = err?.response?.data?.message ?? "sign in failed";
+                const msg = err?.response?.data?.message ?? "sign up failed";
                 toast.error(msg);
             }
             setIsLoading(false);
