@@ -5,6 +5,8 @@ metadata:
   namespace: {{ .Release.Namespace | default "default" | quote }}
   labels:
     app: "{{ .Values.name }}"
+  annotations:
+    date: "{{ now | unixEpoch }}"
 spec:
   selector:
     matchLabels:
@@ -17,8 +19,6 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
         app: "{{ .Values.name }}"
     spec:
@@ -26,8 +26,5 @@ spec:
       - name: "{{ .Values.name }}"
         image: {{ .Values.deployment.image }}:{{ .Values.deployment.tag }}
         imagePullPolicy: Always
-        envFrom:
-        - configMapRef:
-            name: {{ .Values.name }}-config
         ports:
         - containerPort: 80

@@ -42,6 +42,16 @@ const HomePage = () => {
             try {
                 setIsLoading(true);
                 const res = await bank.check(val);
+                if (res?.data?.status !== 200) {
+                    const msg = {
+                        response: {
+                            data: {
+                                message: 'account number not found'
+                            }
+                        }
+                    }
+                    throw msg
+                }
                 setAccount(res?.data?.data?.[0]);
             } catch (err: any) {
                 const msg = err?.response?.data?.message ?? "failed to check account";
@@ -116,10 +126,10 @@ const HomePage = () => {
                                     <p className="number mb-5 sm:text-xl"></p>
                                     <div className="flex flex-col items-start justify-center">
                                         <p className="font-bold drop-shadow-2xl tracking-widest">
-                                            {account.accountNumber}
+                                            {account?.accountNumber}
                                         </p>
-                                        <span>{account.accountName}</span>
-                                        <span className="uppercase">{account.accountBank}</span>
+                                        <span>{account?.accountName}</span>
+                                        <span className="uppercase">{account?.accountBank}</span>
                                     </div>
                                 </div>
                             </div>
