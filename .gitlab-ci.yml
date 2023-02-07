@@ -1,0 +1,48 @@
+image: asia-southeast2-docker.pkg.dev/sipp-248609/sipp-public/gitlab-runner:latest
+
+variables:
+  IMAGE_NAME: aulianabil/onboarding-fe
+  IMAGE_TAG: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+  RELEASE_NAME: onboarding-fe
+  NAMESPACE: onboarding-nabil
+
+.install-envsubst: &install-envsubst |
+  curl -L https://github.com/a8m/envsubst/releases/download/v1.2.0/envsubst-`uname -s`-`uname -m` -o envsubst
+  chmod +x envsubst
+  mv envsubst /usr/local/bin
+
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  services:
+    - docker:19.03.12-dind
+  before_script:
+    - docker login -u $REGISTRY_USER -p $REGISTRY_PASS
+  script:
+    - docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+    - docker build -t ${IMAGE_NAME}:latest .
+    - docker push ${IMAGE_NAME}:${IMAGE_TAG}
+    - docker push ${IMAGE_NAME}:latest
+  only:
+    refs:
+      - master
+
+deploy:test:
+  stage: deploy
+  services:
+    - docker:19.03.12-dind
+  before_script:
+    - cat "$GKE_SIPP_KEY_JSON" > serviceaccount.json
+    - gcloud auth activate-service-account ${SERVICE_ACCOUNT} --key-file=serviceaccount.json
+  script:
+    - *install-envsubst
+    - gcloud container clusters get-credentials sipp-test-cluster --region asia-southeast2-a --project sipp-248609
+    - export APP_IMAGE=$IMAGE_NAME:IMAGE_TAG
+    - cat ./chart/values.yaml | envsubst | tee ./chart/values-sub.yaml
+    - helm upgrade --install $RELEASE_NAME ./chart -n $NAMESPACE --values ./chart/values-sub.yaml
+  only:
+    refs:
+      - master
